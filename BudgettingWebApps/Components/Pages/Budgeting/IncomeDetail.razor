@@ -1,0 +1,9 @@
+﻿@page "/incomedetail/{Id}"
+@rendermode InteractiveServer
+<h3>Detail for income @Id</h3>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+}
