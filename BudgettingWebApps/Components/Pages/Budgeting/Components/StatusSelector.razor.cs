@@ -9,7 +9,7 @@ namespace BudgettingWebApps.Components.Pages.Budgeting.Components
         public EventCallback<bool> OnPremiumToggle { get; set; }
         private bool SaveButtonDisabled = true;
         [Parameter]
-        public IncomeDto income{ get; set; }
+        public IncomeDto income { get; set; }
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
@@ -25,6 +25,7 @@ namespace BudgettingWebApps.Components.Pages.Budgeting.Components
             new IncomeStatusDto(){Id = 7, IncomeId=2,IsPaid=true,TransactionDate=new DateTime(),Comments="Received 500"},
             new IncomeStatusDto(){Id = 8, IncomeId=2,IsPaid=false,TransactionDate=new DateTime(),Comments="Expecting anytime"}
         };
+        
         public async Task CheckBoxChanged(IncomeStatusDto Status)
         {
             var newValue = Status.IsPaid;

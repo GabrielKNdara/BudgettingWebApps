@@ -11,7 +11,7 @@ namespace BudgettingWebApps.Components.Pages.Budgeting.Components
 
         public void PremiumToggle (bool isPaidInFull)
         {
-            Income.
+            //Income.
         }  
     }
 }
