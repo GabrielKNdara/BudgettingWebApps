@@ -1,4 +1,6 @@
 using BudgettingWebApps.Components;
+using BudgettingWebApps.Configuration;
+using BudgettingWebApps.Reposiotories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
+
+var pgConnectionString = builder.Configuration.GetConnectionString("DefaultPgConnection");
+var connectionFactory = new PsSqlDbConnectionFactory(pgConnectionString);
+builder.Services.AddSingleton<IPsSqlDbConnectionFactory>(provider => connectionFactory);
+
+builder.Services.AddSingleton<IincomeRepository, IncomeRepository>();
 
 var app = builder.Build();
 
