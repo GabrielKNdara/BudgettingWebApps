@@ -24,6 +24,7 @@ var pgConnectionString = builder.Configuration.GetConnectionString("DefaultPgCon
 var connectionFactory = new PsSqlDbConnectionFactory(pgConnectionString);
 builder.Services.AddSingleton<IPsSqlDbConnectionFactory>(provider => connectionFactory);
 
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IincomeRepository, IncomeRepository>();
 builder.Services.AddSingleton<IincomeStatuRepository,IncomeStatuRepository>();
 

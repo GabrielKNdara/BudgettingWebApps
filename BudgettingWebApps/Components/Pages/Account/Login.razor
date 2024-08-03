@@ -1,6 +1,7 @@
 ﻿@page "/login"
 @using BudgettingWebApps.Models.ViewModels
 @using System.Security.Claims
+@using BudgettingWebApps.Reposiotories
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
 @inject NavigationManager navigationManager
@@ -41,25 +42,64 @@
     [SupplyParameterFromForm]
     public LoginViewModel Model { get; set; } = new();
 
+    [Inject]
+    private IUserRepository _userRepository { get; set; } = default!;
+
+
     private string? errorMessage;
 
     private async Task Authenticate()
     {
-        if(Model.UserName is null || Model.Password is null)
+        try
         {
-            errorMessage = "Invalid User Name or Password";
-            return;
-        }
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, Model.UserName)
-           // new Claim(ClaimTypes.Role, userDto.Role) will need to add userDto
-        };
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var principle = new ClaimsPrincipal(identity);
-        await httpContext.SignInAsync(principle);
+            var user = await _userRepository.GetUser(Model.UserName);
+            if (BCrypt.Net.BCrypt.Verify(Model.Password, user.passwordhash)) //need to brush this when wrong credential are passed
+            {
+               
+                var claims = new List<Claim>
+                 {
+                    new Claim(ClaimTypes.Name, Model.UserName)
+                // new Claim(ClaimTypes.Role, userDto.Role) will need to add userDto
+                 };
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principle = new ClaimsPrincipal(identity);
+                await httpContext.SignInAsync(principle);
 
-        navigationManager.NavigateTo("/");
+                navigationManager.NavigateTo("/");
+               
+            }
+            else
+            {
+
+                Console.WriteLine("Invalid login credentials!");
+            }
+
+
+
+
+          
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Wrong password or username please try again", ex);
+        }
+
+
+        // if(Model.UserName is null || Model.Password is null)
+        // {
+        //     errorMessage = "Invalid User Name or Password";
+        //     return;
+        // }
+        // var claims = new List<Claim>
+        // {
+        //     new Claim(ClaimTypes.Name, Model.UserName)
+        //    // new Claim(ClaimTypes.Role, userDto.Role) will need to add userDto
+        // };
+        // var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        // var principle = new ClaimsPrincipal(identity);
+        // await httpContext.SignInAsync(principle);
+
+        // navigationManager.NavigateTo("/");
     }
 
 }
