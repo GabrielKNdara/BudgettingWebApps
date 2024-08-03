@@ -1,4 +1,6 @@
-﻿<tr>
+﻿@using BudgettingWebApps.Models
+
+<tr>
    <td class="align-middle">@Income.IncomeName</td>
     <td class="align-middle">@Income.Amount</td>
     <td class="align-middle">@Income.TransactionDate</td>
@@ -15,10 +17,20 @@
 @if (ShowStatus)
 {
     <tr>
-        <td colspan="3">            
-            <StatusSelector income="@Income" OnPremiumToggle="PremiumToggle"></StatusSelector>
+        <td colspan="4">            
+            <StatusSelector income="@Income.Id" ></StatusSelector>
         </td>
       
     </tr>
+}
+@code{
+    public bool ShowStatus { get; set; }
+    [Parameter]
+    public IncomeDto Income { get; set; }
+
+    public void PremiumToggle(bool isPaidInFull)
+    {
+        //Income.
+    }
 }
 

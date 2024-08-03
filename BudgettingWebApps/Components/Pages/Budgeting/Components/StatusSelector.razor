@@ -1,4 +1,6 @@
-﻿@* <h3>StatusSelector</h3> *@
+﻿@using BudgettingWebApps.Models
+@using BudgettingWebApps.Reposiotories
+@* <h3>StatusSelector</h3> *@
 @if (incomeStatus == null)
 {
     <p><em>Loading...</em></p>
@@ -11,6 +13,7 @@ else
                 <thead>
                     <tr>
                         <th>IsPaid</th>
+                        <th>IsFullyReceived</th>
                         <th>Comment</th>
                         <th>Transaction Date</th>
                     </tr>
@@ -22,7 +25,10 @@ else
                             <td>
                                 <input type="checkbox" checked="@status.IsPaid" @onclick="e => CheckBoxChanged( status)"/>
                             </td>
-                            <td>@status.Comments</td>
+                            <td>
+                                <input type="checkbox" checked="@status.IsFullPaid" />
+                            </td>
+                            <td class="align-middle">@status.Comment.ToString()</td>
                             @if (status.IsPaid)
                             {
                                 <td>@status.TransactionDate.ToString("dd/MM/yyyy")</td>
@@ -44,5 +50,56 @@ else
 }
 
 @code {
+    List<IncomeStatusDto> incomeStatus = new List<IncomeStatusDto>();
+    [Inject]
+    private IincomeStatuRepository repository { get; set; } = default!;
+    [Parameter]
+    public EventCallback<bool> OnPremiumToggle { get; set; }
+    private bool SaveButtonDisabled = true;
+    // [Parameter]
+    // public IncomeDto income { get; set; }
+    [Parameter]
+    public int Income { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        incomeStatus = await GetIncomeStatuses(Income);
+    }
+
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     await GetIncomeStatuses(incomeId);
+    //     //  await LoadData();
+    //     await base.OnInitializedAsync();
+    // }
+    // private async Task LoadData()
+    // {
+    //     incomeStatus = await repository.GetIncomeStatus();
+    // }
+
+
+
+    public async Task CheckBoxChanged(IncomeStatusDto Status)
+    {
+        var newValue = Status.IsPaid;
+        // incomeStatus.IsPaid = newValue;
+        SaveButtonDisabled = false;
+        if (newValue)
+        {
+            Status.TransactionDate = DateTime.Now;
+        }
+        await OnPremiumToggle.InvokeAsync(incomeStatus.Any(b => b.IsPaid));
+    }
+    public async Task SaveClick()
+    {
+        SaveButtonDisabled = true;
+    }
+    
+    private async Task<List<IncomeStatusDto>> GetIncomeStatuses(int id)
+    {
+        incomeStatus =await repository.GetIncomeStatus();
+        return incomeStatus.Where(s=>s.IncomeId==id).ToList();
+    }
 
 }
