@@ -12,6 +12,10 @@ namespace BudgettingWebApps.Models.Mapper
                 username = user.UserName,
                 passwordhash = BCrypt.Net.BCrypt.HashPassword(user.Password),
                 role = user.Role,
+                email = user.Email,
+                firstname = user.FirstName,
+                lastname = user.Surname
+                
               //  createdate = DateTime.Now,
             };      
         }

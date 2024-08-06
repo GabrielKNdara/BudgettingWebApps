@@ -1,4 +1,5 @@
 ﻿@page "/login"
+@using BudgettingWebApps.Models
 @using BudgettingWebApps.Models.ViewModels
 @using System.Security.Claims
 @using BudgettingWebApps.Reposiotories
@@ -9,7 +10,7 @@
 
 <div class="row">
     <div class="col-lg-4 offset-lg-4 pb-4 border">
-        <EditForm Model="@Model" OnValidSubmit="Authenticate" FormName="LoginForm">
+        <EditForm Model="@currentUser" OnValidSubmit="Authenticate" FormName="LoginForm">
             <DataAnnotationsValidator/>
             <div class="mb-3 text-center flex-column">
                 <img src="/Images/Logo.png" style="max-height : 5rem;"/>
@@ -17,18 +18,21 @@
             </div>
             <div class="mb-3">
                 <label>User Name</label>
-                <InputText @bind-Value="Model.UserName" class="form-control" placeholder="Username"/>
-                <ValidationMessage For="() => Model.UserName"/>
+                <InputText @bind-Value="currentUser.UserName" class="form-control" placeholder="Username" />
+                <ValidationMessage For="() => currentUser.UserName" />
             </div>
             <div class="mb-3">
                 <label>Password</label>
-                <InputText @bind-Value="Model.Password" placeholder ="password" type="password" class="form-control"/>
+                <InputText @bind-Value="currentUser.Password" placeholder="password" type="password" class="form-control" />
             </div>
             <div class="mb-3 text-center">
                 <span class="text-danger">@errorMessage</span>
             </div>
             <div class="mb-3 d-grid gap-2">
                 <button type="submit" class="btn btn-primary">Login</button>
+            </div>
+            <div>
+             You do not have account? <a class="fw-bolder" href="/signup">click here</a> to create account
             </div>
         </EditForm>
     </div>
@@ -40,49 +44,54 @@
     public HttpContext? httpContext { get; set; }
 
     [SupplyParameterFromForm]
-    public LoginViewModel Model { get; set; } = new();
+    public UserDto currentUser { get; set; } = new();
 
-    [Inject]
-    private IUserRepository _userRepository { get; set; } = default!;
+        [Inject]
+        private IUserRepository _userRepository { get; set; } = default!;
 
 
     private string? errorMessage;
 
     private async Task Authenticate()
     {
-        try
-        {
-            var user = await _userRepository.GetUser(Model.UserName);
-            if (BCrypt.Net.BCrypt.Verify(Model.Password, user.passwordhash)) //need to brush this when wrong credential are passed
+       // try
+       // {
+        var user = await _userRepository.GetUser(currentUser.UserName);
+        if (BCrypt.Net.BCrypt.Verify(currentUser.Password, user.passwordhash)) 
             {
-               
+
                 var claims = new List<Claim>
-                 {
-                    new Claim(ClaimTypes.Name, Model.UserName)
-                // new Claim(ClaimTypes.Role, userDto.Role) will need to add userDto
+                 { 
+                     
+                    new Claim(ClaimTypes.PrimarySid, user.id.ToString()),
+                    new Claim(ClaimTypes.Name, currentUser.UserName),
+                    //    new Claim(ClaimTypes.Role, userDto.Role)// will need to add userDto
+                    
                  };
+          
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principle = new ClaimsPrincipal(identity);
                 await httpContext.SignInAsync(principle);
 
                 navigationManager.NavigateTo("/");
-               
+
             }
             else
             {
-
-                Console.WriteLine("Invalid login credentials!");
+                errorMessage = "Invalid Username and Password";
+                return;
             }
 
 
 
 
-          
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Wrong password or username please try again", ex);
-        }
+
+        // }
+        // catch (Exception ex)
+        // {
+        //    // throw new Exception("Wrong password or username please try again", ex);
+        //     Console.WriteLine("Wrong password or username please try again", ex);
+        // }
 
 
         // if(Model.UserName is null || Model.Password is null)

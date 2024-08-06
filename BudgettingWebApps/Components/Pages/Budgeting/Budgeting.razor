@@ -3,6 +3,7 @@
 @using BudgettingWebApps.Models
 @using BudgettingWebApps.Components.Pages.Budgeting.Components
 @using BudgettingWebApps.Reposiotories
+@using System.Security.Claims
 
 <h3>Budgeting</h3>
 <table class="table">
@@ -22,15 +23,25 @@
 </table>
 
 @code {
-   
-    IEnumerable<IncomeDto> _income = new List<IncomeDto>();
+        [CascadingParameter]
+        private Task<AuthenticationState> authenticationStateTask { get; set; }
 
-    [Inject]
-    private IincomeRepository repository { get; set; } = default!;
+        IEnumerable<IncomeDto> _income = new List<IncomeDto>();
+
+        [Inject]
+        private IincomeRepository repository { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        _income =await repository.GetIncome(2);
+        var authenticationState = await authenticationStateTask;
+        var user = authenticationState.User;
+
+        var userIdClaim = user.FindFirst(ClaimTypes.PrimarySid);
+        var userId = userIdClaim?.Value;
+
+        var currentuser = Convert.ToInt16(userId);
+
+        _income = await repository.GetIncome(currentuser);
         await base.OnInitializedAsync();
     }
 
