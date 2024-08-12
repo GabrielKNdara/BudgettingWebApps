@@ -4,8 +4,13 @@
 @using BudgettingWebApps.Components.Pages.Budgeting.Components
 @using BudgettingWebApps.Reposiotories
 @using System.Security.Claims
+@using BudgettingWebApps.Components.Pages.Budgeting.Dialogs
 
 <h3>Budgeting</h3>
+<button @onclick="ShowAddIncomeDialog">Add Income</button>
+
+<AddIncomeDialog IsVisible="@isAddIncomeDialogVisible" OnClose="CloseAddIncomeDialog" OnSubmit="HandleIncomeSubmit" />
+
 <table class="table">
     <thead>
         <tr>
@@ -15,21 +20,22 @@
         </tr>
     </thead>
     <tbody>
-        @foreach(var income in _income)
+        @foreach (var income in _income)
         {
-            <IncomeRows @key="income" Income="@income"/>
+            <IncomeRows @key="income" Income="@income" />
         }
     </tbody>
 </table>
 
 @code {
-        [CascadingParameter]
-        private Task<AuthenticationState> authenticationStateTask { get; set; }
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
 
-        IEnumerable<IncomeDto> _income = new List<IncomeDto>();
+    IEnumerable<IncomeDto> _income = new List<IncomeDto>();
 
-        [Inject]
-        private IincomeRepository repository { get; set; } = default!;
+    [Inject]
+    private IincomeRepository repository { get; set; } = default!;
+    int currentUser;
 
     protected override async Task OnInitializedAsync()
     {
@@ -39,10 +45,34 @@
         var userIdClaim = user.FindFirst(ClaimTypes.PrimarySid);
         var userId = userIdClaim?.Value;
 
-        var currentuser = Convert.ToInt16(userId);
+        currentUser = Convert.ToInt16(userId);
 
-        _income = await repository.GetIncome(currentuser);
+        _income = await repository.GetIncome(currentUser);
         await base.OnInitializedAsync();
     }
 
+    private bool isAddIncomeDialogVisible = false;
+    [Parameter]
+    public string loginUser { get; set; } = string.Empty;
+    
+    private void ShowAddIncomeDialog()
+    {
+       // currentUser;
+        isAddIncomeDialogVisible = true;
+        StateHasChanged();
+        //  Console.WriteLine("Show button have been clicked");
+    }
+
+    private void CloseAddIncomeDialog()
+    {
+        isAddIncomeDialogVisible = false;
+    }
+
+    private void HandleIncomeSubmit((string IncomeSource, decimal Amount) incomeDetails)
+    {
+        // Handle the submitted income details (e.g., add to a list, save to database)
+      // await repository.CreateNewIncome();
+        Console.WriteLine($"Income Source: {incomeDetails.IncomeSource}, Amount: {incomeDetails.Amount}");
+        CloseAddIncomeDialog();
+    }
 }

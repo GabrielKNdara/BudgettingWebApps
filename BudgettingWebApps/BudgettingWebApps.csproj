@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Components\Pages\Budgeting\AddIncomeDialog.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net" Version="0.1.0" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="Dapper.SimpleCRUD" Version="2.3.0" />
@@ -17,6 +21,18 @@
 
   <ItemGroup>
     <Folder Include="Authenticate\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Components\Pages\Budgeting\AddIncomeDialog.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Components\Pages\Budgeting\AddIncomeDialog.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Components\Pages\Budgeting\Dialogs\AddIncomeDialog.razor" />
   </ItemGroup>
 
 </Project>
