@@ -6,13 +6,16 @@
 @using System.Security.Claims
 @using BudgettingWebApps.Components.Pages.Budgeting.Dialogs
 
-
 <h3>Budgeting</h3>
-
 <button @onclick="ShowAddIncomeDialog">Add Income</button>
 
-<AddIncomeDialog IsVisible="@isAddIncomeDialogVisible" OnClose="CloseAddIncomeDialog" OnSubmit="HandleIncomeSubmit" />
-
+<AddIncomeDialog IsVisible="@isAddIncomeDialogVisible"
+                 IsEditMode="@isEditMode"
+                 IncomeSource="@incomeSource"
+                 Amount="@amount"
+                 IncomeId="@incomeId"
+                 OnClose="CloseAddIncomeDialog"
+                 OnSubmit="HandleIncomeSubmit" />
 
 <table class="table">
     <thead>
@@ -20,12 +23,21 @@
             <th>Income Name</th>
             <th>Amount</th>
             <th>Date</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var income in _income)
         {
-            <IncomeRows @key="income" Income="@income" />
+            <tr>
+                <td>@income.IncomeName</td>
+                <td>@income.Amount</td>
+                <td>@income.TransactionDate.ToShortDateString()</td>
+                <td>
+                    <button @onclick="() => EditIncome(income)">Edit</button>
+                    <button @onclick="() => DeleteIncome(income.Id)">Delete</button>
+                </td>
+            </tr>
         }
     </tbody>
 </table>
@@ -34,14 +46,10 @@
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
-    IEnumerable<IncomeDto> _income = new List<IncomeDto>();
-
-    IncomeDto income = new IncomeDto();
-
+    private IEnumerable<IncomeDto> _income = new List<IncomeDto>();
 
     [Inject]
     private IincomeRepository repository { get; set; } = default!;
-    int currentUser;
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,21 +59,33 @@
         var userIdClaim = user.FindFirst(ClaimTypes.PrimarySid);
         var userId = userIdClaim?.Value;
 
-        currentUser = Convert.ToInt16(userId);
+        var currentuser = Convert.ToInt16(userId);
 
-        //_income = await repository.GetIncome(currentUser);
-        await Load();
+        _income = await repository.GetIncome(currentuser);
         await base.OnInitializedAsync();
-    }
-    private async Task Load()
-    {
-        _income = await repository.GetIncome(currentUser);
     }
 
     private bool isAddIncomeDialogVisible = false;
+    private bool isEditMode = false;
+    private string incomeSource = string.Empty;
+    private decimal amount = 0;
+    private int? incomeId = null;
 
     private void ShowAddIncomeDialog()
     {
+        isEditMode = false;
+        incomeSource = string.Empty;
+        amount = 0;
+        incomeId = null;
+        isAddIncomeDialogVisible = true;
+    }
+
+    private void EditIncome(IncomeDto income)
+    {
+        isEditMode = true;
+        incomeSource = income.IncomeName;
+        amount = income.Amount;
+        incomeId = income.Id;
         isAddIncomeDialogVisible = true;
     }
 
@@ -74,16 +94,39 @@
         isAddIncomeDialogVisible = false;
     }
 
-    private async Task HandleIncomeSubmit((string IncomeSource, decimal Amount) incomeDetails)
+    private async Task HandleIncomeSubmit((string IncomeSource, decimal Amount, int? IncomeId) incomeDetails)
     {
-        // Handle the submitted income details (e.g., add to a list, save to database)
-        income.UserId = currentUser;
-        income.IncomeName = incomeDetails.IncomeSource;
-        income.Amount = incomeDetails.Amount;
-        income.TransactionDate = DateTime.Now;
-        await repository.CreateNewIncome(income);
-        Console.WriteLine($"Income Source: {incomeDetails.IncomeSource}, Amount: {incomeDetails.Amount}");
+        if (incomeDetails.IncomeId.HasValue)
+        {
+            // Update existing income
+            var incomeToUpdate = _income.FirstOrDefault(i => i.Id == incomeDetails.IncomeId.Value);
+            if (incomeToUpdate != null)
+            {
+                incomeToUpdate.IncomeName = incomeDetails.IncomeSource;
+                incomeToUpdate.Amount = incomeDetails.Amount;
+                await repository.UpdateIncome(incomeToUpdate); // Assuming UpdateIncome method exists
+            }
+        }
+        else
+        {
+            // Add new income
+            var newIncome = new IncomeDto
+                {
+                    IncomeName = incomeDetails.IncomeSource,
+                    Amount = incomeDetails.Amount,
+                    TransactionDate = DateTime.Now, // Assuming Date is automatically set
+                    UserId = Convert.ToInt32(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value)
+                };
+            await repository.CreateNewIncome(newIncome); // Assuming AddIncome method exists
+        }
+
+        // Refresh the income list
+        _income = await repository.GetIncome(Convert.ToInt16(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value));
         CloseAddIncomeDialog();
-        await Load();
+    }
+    private async Task DeleteIncome(int incomeId)
+    {
+        await repository.DeleteIncome(incomeId); // Assuming DeleteIncome method exists
+        _income = await repository.GetIncome(Convert.ToInt16(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value));
     }
 }

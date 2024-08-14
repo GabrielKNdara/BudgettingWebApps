@@ -3,15 +3,15 @@
     <div class="modal">
         <div class="modal-content">
             <span class="close" @onclick="CloseDialog">&times;</span>
-            <h3>Add Income</h3>
-            <!-- Modal content goes here -->
+            <h3>@(IsEditMode ? "Edit Income" : "Add Income")</h3>
+
             <label for="incomeSource">Income Source:</label>
             <input type="text" id="incomeSource" @bind="IncomeSource" /><br /><br />
 
             <label for="amount">Amount:</label>
             <input type="number" id="amount" @bind="Amount" /><br /><br />
 
-            <button @onclick="SubmitIncome">Submit</button>
+            <button @onclick="SubmitIncome">@((IsEditMode) ? "Update" : "Submit")</button>
         </div>
     </div>
 }
@@ -19,10 +19,11 @@
 @code {
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
-    [Parameter] public EventCallback<(string IncomeSource, decimal Amount)> OnSubmit { get; set; }
-
-    private string IncomeSource { get; set; }
-    private decimal Amount { get; set; }
+    [Parameter] public EventCallback<(string IncomeSource, decimal Amount, int? IncomeId)> OnSubmit { get; set; }
+    [Parameter] public bool IsEditMode { get; set; } = false;
+    [Parameter] public string IncomeSource { get; set; } = string.Empty;
+    [Parameter] public decimal Amount { get; set; } = 0;
+    [Parameter] public int? IncomeId { get; set; }
 
     private void CloseDialog()
     {
@@ -32,7 +33,7 @@
 
     private void SubmitIncome()
     {
-        OnSubmit.InvokeAsync((IncomeSource, Amount));
+        OnSubmit.InvokeAsync((IncomeSource, Amount, IncomeId));
         CloseDialog();
     }
 }

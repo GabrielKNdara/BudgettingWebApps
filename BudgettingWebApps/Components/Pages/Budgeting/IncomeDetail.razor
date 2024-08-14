@@ -1,9 +1,15 @@
 ﻿@page "/incomedetail/{Id}"
 @rendermode InteractiveServer
 <h3>Detail for income @Id</h3>
+<h3>Detail for Income Name @IncomeName</h3>
+<h3>Detail for income Amount @Amount</h3>
 
 @code {
     [Parameter]
     public string Id { get; set; }
+    [Parameter]
+    public string IncomeName { get; set; } = string.Empty;
+    [Parameter]
+    public decimal Amount { get; set; }
 
 }
