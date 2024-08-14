@@ -31,8 +31,4 @@
     <_ContentIncludedByDefault Remove="Components\Pages\Budgeting\AddIncomeDialog.razor" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="Components\Pages\Budgeting\Dialogs\AddIncomeDialog.razor" />
-  </ItemGroup>
-
 </Project>

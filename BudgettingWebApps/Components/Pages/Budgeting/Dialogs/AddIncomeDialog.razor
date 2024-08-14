@@ -21,7 +21,7 @@
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<(string IncomeSource, decimal Amount)> OnSubmit { get; set; }
 
-    private string IncomeSource { get; set; } = string.Empty;
+    private string IncomeSource { get; set; }
     private decimal Amount { get; set; }
 
     private void CloseDialog()

@@ -6,10 +6,13 @@
 @using System.Security.Claims
 @using BudgettingWebApps.Components.Pages.Budgeting.Dialogs
 
+
 <h3>Budgeting</h3>
+
 <button @onclick="ShowAddIncomeDialog">Add Income</button>
 
 <AddIncomeDialog IsVisible="@isAddIncomeDialogVisible" OnClose="CloseAddIncomeDialog" OnSubmit="HandleIncomeSubmit" />
+
 
 <table class="table">
     <thead>
@@ -33,6 +36,9 @@
 
     IEnumerable<IncomeDto> _income = new List<IncomeDto>();
 
+    IncomeDto income = new IncomeDto();
+
+
     [Inject]
     private IincomeRepository repository { get; set; } = default!;
     int currentUser;
@@ -47,20 +53,20 @@
 
         currentUser = Convert.ToInt16(userId);
 
-        _income = await repository.GetIncome(currentUser);
+        //_income = await repository.GetIncome(currentUser);
+        await Load();
         await base.OnInitializedAsync();
+    }
+    private async Task Load()
+    {
+        _income = await repository.GetIncome(currentUser);
     }
 
     private bool isAddIncomeDialogVisible = false;
-    [Parameter]
-    public string loginUser { get; set; } = string.Empty;
-    
+
     private void ShowAddIncomeDialog()
     {
-       // currentUser;
         isAddIncomeDialogVisible = true;
-        StateHasChanged();
-        //  Console.WriteLine("Show button have been clicked");
     }
 
     private void CloseAddIncomeDialog()
@@ -68,11 +74,16 @@
         isAddIncomeDialogVisible = false;
     }
 
-    private void HandleIncomeSubmit((string IncomeSource, decimal Amount) incomeDetails)
+    private async Task HandleIncomeSubmit((string IncomeSource, decimal Amount) incomeDetails)
     {
         // Handle the submitted income details (e.g., add to a list, save to database)
-      // await repository.CreateNewIncome();
+        income.UserId = currentUser;
+        income.IncomeName = incomeDetails.IncomeSource;
+        income.Amount = incomeDetails.Amount;
+        income.TransactionDate = DateTime.Now;
+        await repository.CreateNewIncome(income);
         Console.WriteLine($"Income Source: {incomeDetails.IncomeSource}, Amount: {incomeDetails.Amount}");
         CloseAddIncomeDialog();
+        await Load();
     }
 }

@@ -10,6 +10,7 @@ namespace BudgettingWebApps.Models.Mapper
             {
                 id = income.Id,
                 incomename = income.IncomeName,
+                amount = income.Amount,
                 budgetmonth = income.TransactionDate,
                 userid = income.UserId,
             };
