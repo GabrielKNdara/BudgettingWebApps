@@ -27,6 +27,7 @@ builder.Services.AddSingleton<IPsSqlDbConnectionFactory>(provider => connectionF
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IincomeRepository, IncomeRepository>();
 builder.Services.AddSingleton<IincomeStatuRepository,IncomeStatuRepository>();
+builder.Services.AddSingleton<IExpenseRepository, ExpenseRepository>();
 
 var app = builder.Build();
 

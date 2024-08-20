@@ -1,0 +1,39 @@
+﻿@if (IsVisible)
+{
+    <div class="modal">
+        <div class="modal-content">
+            <span class="close" @onclick="CloseDialog">&times;</span>
+            <h3>@(IsEditExpenseMode ? "Edit Expense" : "Add Expense")</h3>
+
+            <label for="expenseName">Expense Name:</label>
+            <input type="text" id="expenseName" @bind="ExpenseName" /><br /><br />
+
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" @bind="Amount" /><br /><br />
+
+            <button @onclick="SubmitIncome">@((IsEditExpenseMode) ? "Update" : "Submit")</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<(string ExpenseName, decimal Amount, int? ExpenseId)> OnSubmit { get; set; }
+    [Parameter] public bool IsEditExpenseMode { get; set; } = false;
+    [Parameter] public string ExpenseName { get; set; } = string.Empty;
+    [Parameter] public decimal Amount { get; set; } = 0;
+    [Parameter] public int? ExpenseId { get; set; }
+
+    private void CloseDialog()
+    {
+        IsVisible = false;
+        OnClose.InvokeAsync();
+    }
+
+    private void SubmitIncome()
+    {
+        OnSubmit.InvokeAsync((ExpenseName, Amount, ExpenseId));
+        CloseDialog();
+    }
+}

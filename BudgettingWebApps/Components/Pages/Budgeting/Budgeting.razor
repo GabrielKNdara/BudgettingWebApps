@@ -42,14 +42,54 @@
     </tbody>
 </table>
 
+@* Expense data *@
+<button @onclick="ShowAddExpenseDialog">Add Expense</button>
+<AddExpenseDialog IsVisible="@isAddExpenseDialogVisible"
+                 IsEditExpenseMode="@isEditExpenseMode"
+                 ExpenseName="@expenseName"
+                  Amount="@expenseAmount"
+                 ExpenseId="@expenseId"
+                 OnClose="CloseAddExpenseDialog"
+                 OnSubmit="HandleExpenseSubmit" />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Expense Name</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var expense in _expense)
+        {
+            <tr>
+                <td>@expense.ExpenseName</td>
+                <td>@expense.Amount</td>
+                <td>@expense.BudgetMonth.ToShortDateString()</td>
+                <td>
+                    <button @onclick="() => EditExpense(expense)">Edit</button>
+                    <button @onclick="() => DeleteExpense(expense.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     private IEnumerable<IncomeDto> _income = new List<IncomeDto>();
 
+    private IEnumerable<ExpenseDto> _expense = new List<ExpenseDto>();
+
     [Inject]
     private IincomeRepository repository { get; set; } = default!;
+
+    [Inject]
+    private IExpenseRepository expenseRepository { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,6 +101,8 @@
 
         var currentuser = Convert.ToInt16(userId);
 
+        _expense = await expenseRepository.GetExpenses(currentuser);
+
         _income = await repository.GetIncome(currentuser);
         await base.OnInitializedAsync();
     }
@@ -69,7 +111,13 @@
     private bool isEditMode = false;
     private string incomeSource = string.Empty;
     private decimal amount = 0;
-    private int? incomeId = null;
+    private int? incomeId = null;  
+
+    private bool isAddExpenseDialogVisible = false;
+    private bool isEditExpenseMode = false;
+    private string expenseName = string.Empty;
+    private decimal expenseAmount = 0;
+    private int? expenseId = null;
 
     private void ShowAddIncomeDialog()
     {
@@ -78,6 +126,14 @@
         amount = 0;
         incomeId = null;
         isAddIncomeDialogVisible = true;
+    }
+    private void ShowAddExpenseDialog()
+    {
+        isEditExpenseMode = false;
+        expenseName = string.Empty;
+        expenseAmount = 0;
+        expenseId = null;
+        isAddExpenseDialogVisible = true;
     }
 
     private void EditIncome(IncomeDto income)
@@ -88,10 +144,23 @@
         incomeId = income.Id;
         isAddIncomeDialogVisible = true;
     }
+    
+    private void EditExpense(ExpenseDto expense)
+    {
+        isEditExpenseMode = true;
+        expenseName = expense.ExpenseName;
+        expenseAmount = expense.Amount;
+        expenseId = expense.Id;
+        isAddExpenseDialogVisible = true;
+    }
 
     private void CloseAddIncomeDialog()
     {
         isAddIncomeDialogVisible = false;
+    }  
+    private void CloseAddExpenseDialog()
+    {
+        isAddExpenseDialogVisible = false;
     }
 
     private async Task HandleIncomeSubmit((string IncomeSource, decimal Amount, int? IncomeId) incomeDetails)
@@ -124,9 +193,44 @@
         _income = await repository.GetIncome(Convert.ToInt16(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value));
         CloseAddIncomeDialog();
     }
+    private async Task HandleExpenseSubmit((string ExpenseName, decimal Amount, int? ExpenseId) expenseDetails)
+    {
+        if (expenseDetails.ExpenseId.HasValue)
+        {
+            // Update existing expense
+            var expenseToUpdate = _expense.FirstOrDefault(i => i.Id == expenseDetails.ExpenseId.Value);
+            if (expenseToUpdate != null)
+            {
+                expenseToUpdate.ExpenseName = expenseDetails.ExpenseName;
+               expenseToUpdate.Amount = expenseDetails.Amount;
+                await expenseRepository.UpdateExpense(expenseToUpdate); // Assuming UpdateExpense method exists
+            }
+        }
+        else
+        {
+            // Add new expense
+            var newExpense = new ExpenseDto
+                {
+                    ExpenseName = expenseDetails.ExpenseName,
+                    Amount = expenseDetails.Amount,
+                    BudgetMonth = DateTime.Now, // Assuming Date is automatically set
+                    UserId = Convert.ToInt32(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value)
+                };
+            await expenseRepository.AddExpense(newExpense); // Assuming AddExpense method exists
+        }
+
+        // Refresh the income list
+        _expense = await expenseRepository.GetExpenses(Convert.ToInt16(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value));
+        CloseAddIncomeDialog();
+    }
     private async Task DeleteIncome(int incomeId)
     {
         await repository.DeleteIncome(incomeId); // Assuming DeleteIncome method exists
         _income = await repository.GetIncome(Convert.ToInt16(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value));
+    }
+    private async Task DeleteExpense(int expenseId)
+    {
+        await expenseRepository.DeleteExpense(expenseId); // Assuming DeleteExpense method exists
+        _expense = await expenseRepository.GetExpenses(Convert.ToInt16(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value));
     }
 }
