@@ -3,7 +3,7 @@
 @using BudgettingWebApps.Models
 @using BudgettingWebApps.Components.Pages.Budgeting.Components
 @using BudgettingWebApps.Reposiotories
-@using System.Security.Claims
+@using System.Security.Claims  
 @using BudgettingWebApps.Components.Pages.Budgeting.Dialogs
 
 <h3>Budgeting</h3>
@@ -31,7 +31,7 @@
         {
             <tr>
                 <td>@income.IncomeName</td>
-                <td>@income.Amount</td>
+                <td>@income.Amount.ToString("0.00")</td>
                 <td>@income.TransactionDate.ToShortDateString()</td>
                 <td>
                     <button @onclick="() => EditIncome(income)">Edit</button>
@@ -66,7 +66,7 @@
         {
             <tr>
                 <td>@expense.ExpenseName</td>
-                <td>@expense.Amount</td>
+                <td>@expense.Amount.ToString("0.00")</td>
                 <td>@expense.BudgetMonth.ToShortDateString()</td>
                 <td>
                     <button @onclick="() => EditExpense(expense)">Edit</button>
