@@ -3,10 +3,16 @@
 @using BudgettingWebApps.Models
 @using BudgettingWebApps.Components.Pages.Budgeting.Components
 @using BudgettingWebApps.Reposiotories
-@using System.Security.Claims  
+@using System.Security.Claims
 @using BudgettingWebApps.Components.Pages.Budgeting.Dialogs
 
 <h3>Budgeting</h3>
+
+<label style="text-anchor:end"><b>Total Income : @GetTotalIncome().ToString("C")</b></label>
+<label style="text-anchor:end"><b>Total Expenses : @GetTotalExpenses().ToString("C")</b></label>
+<label style="text-anchor:end"><b>Balance : @GetBalance().ToString("C")</b></label>
+<br />
+
 <button @onclick="ShowAddIncomeDialog">Add Income</button>
 
 <AddIncomeDialog IsVisible="@isAddIncomeDialogVisible"
@@ -45,12 +51,12 @@
 @* Expense data *@
 <button @onclick="ShowAddExpenseDialog">Add Expense</button>
 <AddExpenseDialog IsVisible="@isAddExpenseDialogVisible"
-                 IsEditExpenseMode="@isEditExpenseMode"
-                 ExpenseName="@expenseName"
+                  IsEditExpenseMode="@isEditExpenseMode"
+                  ExpenseName="@expenseName"
                   Amount="@expenseAmount"
-                 ExpenseId="@expenseId"
-                 OnClose="CloseAddExpenseDialog"
-                 OnSubmit="HandleExpenseSubmit" />
+                  ExpenseId="@expenseId"
+                  OnClose="CloseAddExpenseDialog"
+                  OnSubmit="HandleExpenseSubmit" />
 
 <table class="table">
     <thead>
@@ -78,6 +84,10 @@
 </table>
 
 @code {
+    decimal TotalIncome = 0;
+    decimal TotalExpense = 0;
+    decimal Balance = 0;
+
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
@@ -104,14 +114,35 @@
         _expense = await expenseRepository.GetExpenses(currentuser);
 
         _income = await repository.GetIncome(currentuser);
+
         await base.OnInitializedAsync();
+    }
+    private decimal GetTotalIncome()
+    {
+        foreach(var income in _income)
+        {
+            TotalIncome += income.Amount;
+        }
+        return TotalIncome;
+    }
+    private decimal GetTotalExpenses()
+    {
+        foreach(var expense in _expense)
+        {
+            TotalExpense += expense.Amount;
+        }
+        return TotalExpense;
+    }
+    private decimal GetBalance()
+    {
+        return GetTotalIncome() - GetTotalExpenses();
     }
 
     private bool isAddIncomeDialogVisible = false;
     private bool isEditMode = false;
     private string incomeSource = string.Empty;
     private decimal amount = 0;
-    private int? incomeId = null;  
+    private int? incomeId = null;
 
     private bool isAddExpenseDialogVisible = false;
     private bool isEditExpenseMode = false;
@@ -144,7 +175,7 @@
         incomeId = income.Id;
         isAddIncomeDialogVisible = true;
     }
-    
+
     private void EditExpense(ExpenseDto expense)
     {
         isEditExpenseMode = true;
@@ -157,7 +188,7 @@
     private void CloseAddIncomeDialog()
     {
         isAddIncomeDialogVisible = false;
-    }  
+    }
     private void CloseAddExpenseDialog()
     {
         isAddExpenseDialogVisible = false;
@@ -202,7 +233,7 @@
             if (expenseToUpdate != null)
             {
                 expenseToUpdate.ExpenseName = expenseDetails.ExpenseName;
-               expenseToUpdate.Amount = expenseDetails.Amount;
+                expenseToUpdate.Amount = expenseDetails.Amount;
                 await expenseRepository.UpdateExpense(expenseToUpdate); // Assuming UpdateExpense method exists
             }
         }
