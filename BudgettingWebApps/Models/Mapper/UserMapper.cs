@@ -14,7 +14,8 @@ namespace BudgettingWebApps.Models.Mapper
                 role = user.Role,
                 email = user.Email,
                 firstname = user.FirstName,
-                lastname = user.Surname
+                lastname = user.Surname,
+                
                 
               //  createdate = DateTime.Now,
             };      

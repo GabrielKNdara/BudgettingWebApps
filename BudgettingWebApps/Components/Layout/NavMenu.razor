@@ -24,7 +24,7 @@
             </Authorized>
         </AuthorizeView> *@
         @* Roles=administrator *@
-        <AuthorizeView>
+        <AuthorizeView Roles="user">
             <Authorized>
                @*  <div class="nav-item px-3">
                     <NavLink class="nav-link" href="weather">
@@ -41,13 +41,17 @@
         </AuthorizeView>
 
        
-
+        <AuthorizeView Roles="admin">
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="login">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> login
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
      
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="login">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> login
-            </NavLink>
-        </div>
+
       
 
     </nav>

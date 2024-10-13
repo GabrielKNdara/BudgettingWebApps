@@ -68,6 +68,7 @@
                      
                     new Claim(ClaimTypes.PrimarySid, user.id.ToString()),
                     new Claim(ClaimTypes.Name, currentUser.UserName),
+                    new Claim(ClaimTypes.Role, user.role)
                     //    new Claim(ClaimTypes.Role, userDto.Role)// will need to add userDto
                     
                  };
