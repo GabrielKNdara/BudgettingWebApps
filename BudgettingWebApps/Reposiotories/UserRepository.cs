@@ -10,6 +10,7 @@ namespace BudgettingWebApps.Reposiotories
     {
         Task<int> CreateNewUser(UserDto user);
         Task<DbUserDto> GetUser(string userName);
+        Task<int> UpdateUserPassword(ForgotPasswordDto user);
     }
     public class UserRepository : IUserRepository
     {
@@ -42,6 +43,18 @@ namespace BudgettingWebApps.Reposiotories
                 surname = dbuser.lastname,
                 passwordhash = dbuser.passwordhash,
                 username = dbuser.username
+            });
+            return (int)userId;
+        }
+        public async Task<int> UpdateUserPassword(ForgotPasswordDto forgotPassword)
+        {
+            using var connection =_connectionFactory.GetDbConnection();
+            var dbuser = ForgotPasswordMapper.Map(forgotPassword);
+            var sql = "UPDATE public.users SET  passwordhash=@passwordhash WHERE username= @username ";
+            var userId = await connection.ExecuteAsync(sql, new
+            {
+                username = dbuser.username,
+                passwordhash = dbuser.passwordhash
             });
             return (int)userId;
         }
