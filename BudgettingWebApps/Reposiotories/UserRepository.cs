@@ -11,6 +11,7 @@ namespace BudgettingWebApps.Reposiotories
         Task<int> CreateNewUser(UserDto user);
         Task<DbUserDto> GetUser(string userName);
         Task<int> UpdateUserPassword(ForgotPasswordDto user);
+        Task<List<UserDto>> GetAlluser();
     }
     public class UserRepository : IUserRepository
     {
@@ -57,6 +58,14 @@ namespace BudgettingWebApps.Reposiotories
                 passwordhash = dbuser.passwordhash
             });
             return (int)userId;
+        }
+
+        public async Task<List<UserDto>> GetAlluser()
+        {
+            using var connection = _connectionFactory.GetDbConnection();
+            var sql = "select * from users";
+            var result = await connection.QueryAsync<UserDto>(sql);
+            return result.ToList();
         }
     }
 }

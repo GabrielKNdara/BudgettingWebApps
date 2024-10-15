@@ -12,7 +12,7 @@
 
 <label style="text-anchor:end"><b>Total Income : @GetTotalIncome().ToString("C")</b></label>
 <label style="text-anchor:end"><b>Total Expenses : @GetTotalExpenses().ToString("C")</b></label>
-<label style="text-anchor:end"><b>Balance : @GetBalance().ToString("C")</b></label>
+<label style="text-anchor:end"><b>Balance : @GetBalance().ToString("C") </b></label>
 <br />
 
 <button @onclick="ShowAddIncomeDialog">Add Income</button>
@@ -137,7 +137,11 @@
     }
     private decimal GetBalance()
     {
-        return GetTotalIncome() - GetTotalExpenses();
+        Console.WriteLine($"Total Income {TotalIncome} ");
+        Console.WriteLine($"Total Expenses {TotalExpense} ");
+        var result =TotalIncome - TotalExpense;
+
+        return result;
     }
 
     private bool isAddIncomeDialogVisible = false;

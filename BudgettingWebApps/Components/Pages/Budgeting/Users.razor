@@ -1,0 +1,46 @@
+﻿@page "/users"
+@using BudgettingWebApps.Models
+@using BudgettingWebApps.Reposiotories
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "admin")]
+
+<h3>Users List</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>User Name</th>
+            <th>Email</th>
+            <th>First Name</th>
+            <th>Surname</th>
+            <th>Role</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in _user)
+        {
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                <td>@user.FirstName</td>
+                <td>@user.Surname</td>
+                <td>@user.Role</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+    private IEnumerable<UserDto> _user = new List<UserDto>();
+
+    [Inject]
+    private IUserRepository userRepository { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = await userRepository.GetAlluser();
+        await base.OnInitializedAsync();
+    }
+
+}
