@@ -10,9 +10,26 @@
 
 <h3>Budgeting</h3>
 
-<label style="text-anchor:end"><b>Total Income : @GetTotalIncome().ToString("C")</b></label>
-<label style="text-anchor:end"><b>Total Expenses : @GetTotalExpenses().ToString("C")</b></label>
-<label style="text-anchor:end"><b>Balance : @GetBalance().ToString("C") </b></label>
+<label style="text-anchor:end"><b>Total Income : @TotalIncome.ToString("C")</b></label>
+<label style="text-anchor:end"><b>Total Expenses : @TotalExpense.ToString("C")</b></label>
+<label style="text-anchor:end"><b>Balance : @Balance.ToString("C") </b></label>
+<br />
+<select class="form-select"
+        bind="_selectedState"
+        @onchange="OnStateSelected">
+    <option value="" disabled>@(_placeholder ? "Placeholder" : "-- Select a state --")</option>
+    @foreach (var month in Enum.GetValues(typeof(BudgetMonths)))
+    {
+        <option value="@month">@month</option>
+    }
+</select>
+
+@if (_helperText)
+{
+    <small class="form-text text-muted">@(_helperText ? "Helper Text" : null)</small>
+}
+
+
 <br />
 
 <button @onclick="ShowAddIncomeDialog">Add Income</button>
@@ -35,7 +52,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var income in _income)
+        @foreach (var income in filteredIncome)
         {
             <tr>
                 <td>@income.IncomeName</td>
@@ -70,7 +87,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var expense in _expense)
+        @foreach (var expense in filteredExpenses)
         {
             <tr>
                 <td>@expense.ExpenseName</td>
@@ -90,12 +107,59 @@
     decimal TotalExpense = 0;
     decimal Balance = 0;
 
+
+    private bool _placeholder = true;
+    private bool _helperText = true;
+
+    private string _selectedState { get; set; } // Holds the selected state
+
+
+    private enum BudgetMonths
+    {
+        January = 1,
+        February,
+        March,
+        April,
+        May,
+        June,
+        July,
+        August,
+        September,
+        October,
+        November,
+        December
+
+    }
+
+
+    private void OnStateSelected(ChangeEventArgs e)
+    {
+        //  _selectedState = e.Value.ToString();  // Capture the selected state
+        Console.WriteLine($"Selected month: {_selectedState}");  // Log the selected state to the console
+                                                                 // int monthNumber = (int)_selectedState;
+        var selectedMonth = (BudgetMonths)Enum.Parse(typeof(BudgetMonths), e.Value.ToString());
+
+        // Get the numeric value (month number) by casting to int
+        int monthNumber = (int)selectedMonth;
+        Console.WriteLine($"the selected month number is {monthNumber}");
+        filteredIncome = _income.FindAll(x => x.TransactionDate.Month == monthNumber).ToList();
+        filteredExpenses = _expense.FindAll(x => x.BudgetMonth.Month == monthNumber).ToList();
+        TotalIncome = filteredIncome.Sum(x => x.Amount);
+        TotalExpense = filteredExpenses.Sum(x => x.Amount);
+        Balance = TotalIncome - TotalExpense;
+
+    }
+
+
+
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
-    private IEnumerable<IncomeDto> _income = new List<IncomeDto>();
+    private List<IncomeDto> _income = new List<IncomeDto>(); 
+    private List<IncomeDto> filteredIncome = new List<IncomeDto>();
 
-    private IEnumerable<ExpenseDto> _expense = new List<ExpenseDto>();
+    private List<ExpenseDto> _expense = new List<ExpenseDto>();
+    private List<ExpenseDto> filteredExpenses = new List<ExpenseDto>();
 
     [Inject]
     private IincomeRepository repository { get; set; } = default!;
@@ -114,35 +178,17 @@
         var currentuser = Convert.ToInt16(userId);
 
         _expense = await expenseRepository.GetExpenses(currentuser);
+        filteredExpenses = _expense.FindAll(x => x.BudgetMonth.Month == DateTime.Now.Month).ToList();
 
         _income = await repository.GetIncome(currentuser);
-
+        filteredIncome = _income.FindAll(x => x.TransactionDate.Month == DateTime.Now.Month).ToList(); 
+        TotalIncome = filteredIncome.Sum(x => x.Amount);
+        TotalExpense = filteredExpenses.Sum(x => x.Amount);
+        Balance = TotalIncome - TotalExpense;
         await base.OnInitializedAsync();
     }
-    private decimal GetTotalIncome()
-    {
-        foreach(var income in _income)
-        {
-            TotalIncome += income.Amount;
-        }
-        return TotalIncome;
-    }
-    private decimal GetTotalExpenses()
-    {
-        foreach(var expense in _expense)
-        {
-            TotalExpense += expense.Amount;
-        }
-        return TotalExpense;
-    }
-    private decimal GetBalance()
-    {
-        Console.WriteLine($"Total Income {TotalIncome} ");
-        Console.WriteLine($"Total Expenses {TotalExpense} ");
-        var result =TotalIncome - TotalExpense;
+   
 
-        return result;
-    }
 
     private bool isAddIncomeDialogVisible = false;
     private bool isEditMode = false;
@@ -228,6 +274,14 @@
 
         // Refresh the income list
         _income = await repository.GetIncome(Convert.ToInt16(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value));
+        filteredIncome = _income.FindAll(x => x.TransactionDate.Month == DateTime.Now.Month).ToList();
+        
+
+        TotalIncome = filteredIncome.Sum(x => x.Amount);
+        TotalExpense = filteredExpenses.Sum(x => x.Amount);
+        Balance = TotalIncome - TotalExpense;
+
+
         CloseAddIncomeDialog();
     }
     private async Task HandleExpenseSubmit((string ExpenseName, decimal Amount, int? ExpenseId) expenseDetails)
@@ -258,16 +312,30 @@
 
         // Refresh the income list
         _expense = await expenseRepository.GetExpenses(Convert.ToInt16(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value));
+        filteredExpenses = _expense.FindAll(x => x.BudgetMonth.Month == DateTime.Now.Month).ToList();
+      
+        TotalIncome = filteredIncome.Sum(x => x.Amount);
+        TotalExpense = filteredExpenses.Sum(x => x.Amount);
+        Balance = TotalIncome - TotalExpense;
+        
         CloseAddIncomeDialog();
     }
     private async Task DeleteIncome(int incomeId)
     {
         await repository.DeleteIncome(incomeId); // Assuming DeleteIncome method exists
         _income = await repository.GetIncome(Convert.ToInt16(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value));
+        filteredIncome = _income.FindAll(x => x.TransactionDate.Month == DateTime.Now.Month).ToList();
+        TotalIncome = filteredIncome.Sum(x => x.Amount);
+        TotalExpense = filteredExpenses.Sum(x => x.Amount);
+        Balance = TotalIncome - TotalExpense;
     }
     private async Task DeleteExpense(int expenseId)
     {
         await expenseRepository.DeleteExpense(expenseId); // Assuming DeleteExpense method exists
         _expense = await expenseRepository.GetExpenses(Convert.ToInt16(authenticationStateTask.Result.User.FindFirst(ClaimTypes.PrimarySid)?.Value));
+        filteredExpenses = _expense.FindAll(x => x.BudgetMonth.Month == DateTime.Now.Month).ToList();
+        TotalIncome = filteredIncome.Sum(x => x.Amount);
+        TotalExpense = filteredExpenses.Sum(x => x.Amount);
+        Balance = TotalIncome - TotalExpense;
     }
 }
