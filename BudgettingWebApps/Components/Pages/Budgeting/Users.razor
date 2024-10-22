@@ -1,10 +1,14 @@
 ﻿@page "/users"
 @using BudgettingWebApps.Models
+@using BudgettingWebApps.Models.ExcelReport
 @using BudgettingWebApps.Reposiotories
 @using Microsoft.AspNetCore.Authorization
+@using Serilog
+@rendermode InteractiveServer
 @attribute [Authorize(Roles = "admin")]
 
 <h3>Users List</h3>
+<button class="btn btn-primary" @onclick="@(async()=>await ExportToExcel())">Export To Excel Report</button>
 
 <table class="table">
     <thead>
@@ -32,15 +36,25 @@
 
 
 @code {
-    private IEnumerable<UserDto> _user = new List<UserDto>();
+    [Inject]
+    IJSRuntime jSRuntime { get; set; } = default!;
+
+    private List<UserDto> _user = new List<UserDto>();
 
     [Inject]
     private IUserRepository userRepository { get; set; } = default!;
+
 
     protected override async Task OnInitializedAsync()
     {
         _user = await userRepository.GetAlluser();
         await base.OnInitializedAsync();
+    }
+    private async Task ExportToExcel()
+    {
+        await jSRuntime.InvokeVoidAsync("open", "/users/excel/report/");
+        Log.Information("The download button have been clicked");
+        Console.WriteLine("You have clicked the download button");
     }
 
 }

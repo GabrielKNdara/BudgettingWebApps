@@ -1,9 +1,12 @@
 using BudgettingWebApps.Components;
 using BudgettingWebApps.Configuration;
 using BudgettingWebApps.Reposiotories;
+using FastEndpoints;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddFastEndpoints(); //added fastendpoint
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -46,6 +49,8 @@ app.UseAuthorization();//
 
 app.UseStaticFiles();
 app.UseAntiforgery();
+
+app.UseFastEndpoints(); //Added fastendpoint 
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
