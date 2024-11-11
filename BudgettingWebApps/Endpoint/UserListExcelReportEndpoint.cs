@@ -1,5 +1,4 @@
-﻿using BudgettingWebApps.Models;
-using BudgettingWebApps.Models.ExcelReport;
+﻿using BudgettingWebApps.Models.Reports;
 using BudgettingWebApps.Reposiotories;
 using FastEndpoints;
 

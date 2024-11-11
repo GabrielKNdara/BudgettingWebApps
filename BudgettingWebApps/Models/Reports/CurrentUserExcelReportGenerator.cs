@@ -1,8 +1,7 @@
-﻿using BudgettingWebApps.Reposiotories;
-using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
+﻿using ClosedXML.Excel;
 
-namespace BudgettingWebApps.Models.ExcelReport
+
+namespace BudgettingWebApps.Models.Reports
 {
     public class CurrentUserExcelReportGenerator
     {

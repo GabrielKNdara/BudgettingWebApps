@@ -3,8 +3,11 @@ using BudgettingWebApps.Configuration;
 using BudgettingWebApps.Reposiotories;
 using FastEndpoints;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 builder.Services.AddFastEndpoints(); //added fastendpoint
 
