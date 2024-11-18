@@ -13,6 +13,8 @@
 <label style="text-anchor:end"><b>Total Income : @TotalIncome.ToString("C")</b></label>
 <label style="text-anchor:end"><b>Total Expenses : @TotalExpense.ToString("C")</b></label>
 <label style="text-anchor:end"><b>Balance : @Balance.ToString("C") </b></label>
+<br/>
+<button class="btn btn-primary" @onclick="DrawPdfReport">Draw Pdf Report</button>
 <br />
 <select class="form-select"
         bind="_selectedState"
@@ -128,7 +130,6 @@
         October,
         November,
         December
-
     }
 
 
@@ -337,5 +338,10 @@
         TotalIncome = filteredIncome.Sum(x => x.Amount);
         TotalExpense = filteredExpenses.Sum(x => x.Amount);
         Balance = TotalIncome - TotalExpense;
+    }
+
+    private void DrawPdfReport()
+    {
+        
     }
 }

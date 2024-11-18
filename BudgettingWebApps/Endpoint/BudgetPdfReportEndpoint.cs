@@ -24,6 +24,11 @@ public class BudgetPdfReportEndpoint : EndpointWithoutRequest
     {
         try
         {
+          // var byteArray =new BudgetDocument();
+          // var bytea = byteArray.GetMetadata();
+          // await SendBytesAsync(byteArray.GetMetadata(),  "IncomeReport.pdf","application/pdf");
+          
+          
           var byteArray = QuestPdfService.GenerateBudgetReportBytes();
           await SendBytesAsync(byteArray,  "IncomeReport.pdf","application/pdf");
 
