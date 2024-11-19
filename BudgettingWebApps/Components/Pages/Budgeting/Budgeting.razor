@@ -5,7 +5,8 @@
 @using System.Security.Claims
 @using BudgettingWebApps.Components.Pages.Budgeting.Dialogs
 @using Microsoft.AspNetCore.Authorization
-Inject private NavigationManager Navigation { get; set; }
+@using Serilog
+@rendermode InteractiveServer
 @attribute [Authorize(Roles ="user,admin")]
 
 <h3>Budgeting</h3>
@@ -167,6 +168,9 @@ Inject private NavigationManager Navigation { get; set; }
 
     [Inject]
     private IExpenseRepository expenseRepository { get; set; } = default!;
+    
+    [Inject]
+    IJSRuntime jSRuntime { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -340,8 +344,10 @@ Inject private NavigationManager Navigation { get; set; }
         Balance = TotalIncome - TotalExpense;
     }
 
-    private void DrawPdfReport()
+    private async Task DrawPdfReport()
     {
-      
+        await jSRuntime.InvokeVoidAsync("open", "/budgeting/pdf/report/");
+        Console.WriteLine("Download pdf");
+        Log.Information("Download Pdf report");
     }
 }
