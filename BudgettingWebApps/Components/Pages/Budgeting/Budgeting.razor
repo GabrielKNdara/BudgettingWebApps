@@ -1,11 +1,11 @@
 ﻿@page "/budgeting"
-@rendermode InteractiveServer
 @using BudgettingWebApps.Models
 @using BudgettingWebApps.Components.Pages.Budgeting.Components
 @using BudgettingWebApps.Reposiotories
 @using System.Security.Claims
 @using BudgettingWebApps.Components.Pages.Budgeting.Dialogs
 @using Microsoft.AspNetCore.Authorization
+Inject private NavigationManager Navigation { get; set; }
 @attribute [Authorize(Roles ="user,admin")]
 
 <h3>Budgeting</h3>
@@ -342,6 +342,6 @@
 
     private void DrawPdfReport()
     {
-        
+      
     }
 }
