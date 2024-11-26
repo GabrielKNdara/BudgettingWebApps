@@ -1,8 +1,7 @@
-using System.Net;
 using BudgettingWebApps.Reposiotories;
 using BudgettingWebApps.Services;
 using FastEndpoints;
-using Google.Protobuf.Compiler;
+
 
 namespace BudgettingWebApps.Endpoint;
 
@@ -24,18 +23,12 @@ public class BudgetPdfReportEndpoint : EndpointWithoutRequest
     {
         try
         {
-          // var byteArray =new BudgetDocument();
-          // var bytea = byteArray.GetMetadata();
-          // await SendBytesAsync(byteArray.GetMetadata(),  "IncomeReport.pdf","application/pdf");
-          
-          
-          var byteArray = QuestPdfService.GenerateBudgetReportBytes();
-          await SendBytesAsync(byteArray,  "IncomeReport.pdf","application/pdf");
-
+            var byteArray = await QuestPdfService.GenerateBudgetReportBytesAsync();
+            await SendBytesAsync(byteArray, "IncomeReport.pdf", "application/pdf");
         }
         catch (Exception e)
         {
-          Console.WriteLine(e.ToString());
+            Console.WriteLine(e.ToString());
         }
     }
 }
