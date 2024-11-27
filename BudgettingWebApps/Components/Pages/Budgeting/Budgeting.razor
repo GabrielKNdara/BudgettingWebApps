@@ -109,6 +109,8 @@
     decimal TotalIncome = 0;
     decimal TotalExpense = 0;
     decimal Balance = 0;
+    int currentuser;
+    int monthNumber;
 
 
     private bool _placeholder = true;
@@ -142,7 +144,7 @@
         var selectedMonth = (BudgetMonths)Enum.Parse(typeof(BudgetMonths), e.Value.ToString());
 
         // Get the numeric value (month number) by casting to int
-        int monthNumber = (int)selectedMonth;
+        monthNumber = (int)selectedMonth;
         Console.WriteLine($"the selected month number is {monthNumber}");
         filteredIncome = _income.FindAll(x => x.TransactionDate.Month == monthNumber).ToList();
         filteredExpenses = _expense.FindAll(x => x.BudgetMonth.Month == monthNumber).ToList();
@@ -180,7 +182,7 @@
         var userIdClaim = user.FindFirst(ClaimTypes.PrimarySid);
         var userId = userIdClaim?.Value;
 
-        var currentuser = Convert.ToInt16(userId);
+         currentuser = Convert.ToInt16(userId);
 
         _expense = await expenseRepository.GetExpenses(currentuser);
         filteredExpenses = _expense.FindAll(x => x.BudgetMonth.Month == DateTime.Now.Month).ToList();
@@ -346,8 +348,7 @@
 
     private async Task DrawPdfReport()
     {
-        await jSRuntime.InvokeVoidAsync("open", "/budgeting/pdf/report/");
+        await jSRuntime.InvokeVoidAsync("open", $"/budgeting/pdf/report/userId={currentuser}&month={monthNumber}");
         Console.WriteLine("Download pdf");
-        Log.Information("Download Pdf report");
     }
 }
