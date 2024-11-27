@@ -20,118 +20,120 @@ namespace BudgettingWebApps.Services
 
         public async Task<byte[]> GenerateBudgetReportBytesAsync(int userId, int month)
         {
-          var allIncome = await _repository.GetIncome(userId);
-           if (allIncome == null || !allIncome.Any())
-           {
-               throw new InvalidOperationException("No Income data found for the given user");
-           }
-           var filteredIncome = allIncome.Where(x => x.TransactionDate.Month == month).ToList();
-           //This is for expenses
-           var allExpenses = await _expenseRepository.GetExpenses(userId);
-           if (allExpenses == null || !allExpenses.Any())
-           {
-               throw new InvalidOperationException("No Expense data found for the given user");
+            var allIncome = await _repository.GetIncome(userId);
+            if (allIncome == null || !allIncome.Any())
+            {
+                throw new InvalidOperationException("No Income data found for the given user");
             }
-           var filteredExpenses = allExpenses.Where(x => x.BudgetMonth.Month == month).ToList();
-           
-           
+
+            var filteredIncome = allIncome.Where(x => x.TransactionDate.Month == month).ToList();
+            //This is for expenses
+            var allExpenses = await _expenseRepository.GetExpenses(userId);
+            if (allExpenses == null || !allExpenses.Any())
+            {
+                throw new InvalidOperationException("No Expense data found for the given user");
+            }
+
+            var filteredExpenses = allExpenses.Where(x => x.BudgetMonth.Month == month).ToList();
+
+            // Compute totals
+            var totalIncome = filteredIncome.Sum(x => x.Amount);
+            var totalExpense = filteredExpenses.Sum(x => x.Amount);
+            var balance = totalIncome - totalExpense;
+
             return await Task.Run(() =>
             {
-           byte[] reportBytes;
-            Document document = Document.Create(container =>
-            {
-                container.Page(page =>
+                byte[] reportBytes;
+                Document document = Document.Create(container =>
                 {
-                    page.Margin(20);
-                    page.Size(PageSizes.A4);
-
-                    page.Header().Text("Budgeting Report")
-                        .FontSize(18)
-                        .SemiBold()
-                        .AlignCenter();
-
-                    page.Content().Column(column =>
+                    container.Page(page =>
                     {
-                        column.Spacing(10);
+                        page.Margin(20);
+                        page.Size(PageSizes.A4);
 
-                        // Summary
-                        column.Item().Text($"Total Income: {TotalIncome:C}");
-                        column.Item().Text($"Total Expenses: {TotalExpense:C}");
-                        column.Item().Text($"Balance: {Balance:C}");
+                        page.Header().Text("Budgeting Report")
+                            .FontSize(18)
+                            .SemiBold()
+                            .AlignCenter();
 
-                        column.Item().Text("Income Details").FontSize(14).Bold();
-                        column.Item().Table(table =>
+                        page.Content().Column(column =>
                         {
-                            table.ColumnsDefinition(columns =>
+                            column.Spacing(10);
+
+                            // Summary
+                            column.Item().Text($"Total Income: {totalIncome:C}");
+                            column.Item().Text($"Total Expenses: {totalExpense:C}");
+                            column.Item().Text($"Balance: {balance:C}");
+
+                            column.Item().Text("Income Details").FontSize(14).Bold();
+                            column.Item().Table(table =>
                             {
-                                columns.ConstantColumn(200); // Income Name
-                                columns.ConstantColumn(100); // Amount
-                                columns.RelativeColumn(); // Date
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.ConstantColumn(200); // Income Name
+                                    columns.ConstantColumn(100); // Amount
+                                    columns.RelativeColumn(); // Date
+                                });
+
+                                // Header Row
+                                table.Header(header =>
+                                {
+                                    header.Cell().Text("Income Name").Bold();
+                                    header.Cell().Text("Amount").Bold();
+                                    header.Cell().Text("Date").Bold();
+                                });
+
+                                // Data Rows
+                                foreach (var income in filteredIncome)
+                                {
+                                    table.Cell().Text(income.IncomeName);
+                                    table.Cell().Text(income.Amount.ToString("C"));
+                                    table.Cell().Text(income.TransactionDate.ToShortDateString());
+                                }
                             });
 
-                            // Header Row
-                            table.Header(header =>
+                            column.Item().Text("Expense Details").FontSize(14).Bold();
+                            column.Item().Table(table =>
                             {
-                                header.Cell().Text("Income Name").Bold();
-                                header.Cell().Text("Amount").Bold();
-                                header.Cell().Text("Date").Bold();
-                            });
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.ConstantColumn(200); // Expense Name
+                                    columns.ConstantColumn(100); // Amount
+                                    columns.RelativeColumn(); // Date
+                                });
 
-                            // Data Rows
-                            foreach (var income in filteredIncome)
-                            {
-                                table.Cell().Text(income.IncomeName);
-                                table.Cell().Text(income.Amount.ToString("C"));
-                                table.Cell().Text(income.TransactionDate.ToShortDateString());
-                            }
+                                // Header Row
+                                table.Header(header =>
+                                {
+                                    header.Cell().Text("Expense Name").Bold();
+                                    header.Cell().Text("Amount").Bold();
+                                    header.Cell().Text("Date").Bold();
+                                });
+
+                                // Data Rows
+                                foreach (var expense in filteredExpenses)
+                                {
+                                    table.Cell().Text(expense.ExpenseName);
+                                    table.Cell().Text(expense.Amount.ToString("C"));
+                                    table.Cell().Text(expense.BudgetMonth.ToShortDateString());
+                                }
+                            });
                         });
 
-                        column.Item().Text("Expense Details").FontSize(14).Bold();
-                        column.Item().Table(table =>
+                        page.Footer().AlignCenter().Text(x =>
                         {
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.ConstantColumn(200); // Expense Name
-                                columns.ConstantColumn(100); // Amount
-                                columns.RelativeColumn(); // Date
-                            });
-
-                            // Header Row
-                            table.Header(header =>
-                            {
-                                header.Cell().Text("Expense Name").Bold();
-                                header.Cell().Text("Amount").Bold();
-                                header.Cell().Text("Date").Bold();
-                            });
-
-                            // Data Rows
-                            foreach (var expense in filteredExpenses)
-                            {
-                                table.Cell().Text(expense.ExpenseName);
-                                table.Cell().Text(expense.Amount.ToString("C"));
-                                table.Cell().Text(expense.BudgetMonth.ToShortDateString());
-                            }
+                            x.Span("Generated on: ");
+                            x.Span(DateTime.Now.ToString("f")).Bold();
                         });
-                    });
-
-                    page.Footer().AlignCenter().Text(x =>
-                    {
-                        x.Span("Generated on: ");
-                        x.Span(DateTime.Now.ToString("f")).Bold();
                     });
                 });
+                reportBytes = document.GeneratePdf();
+                return reportBytes;
             });
-               reportBytes = document.GeneratePdf();
-                        return reportBytes;
-            });
-
-          
-        
-     
         }
-      
-        public static int TotalIncome = 3000;
-        public static int TotalExpense = 2800;
-        public static int Balance = 200;
+
+        // public static int TotalIncome = 3000;
+        // public static int TotalExpense = 2800;
+        // public static int Balance = 200;
     }
 }
