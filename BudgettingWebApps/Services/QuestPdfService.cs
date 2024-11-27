@@ -58,20 +58,13 @@ namespace BudgettingWebApps.Services
 
                         page.Content().Column(column =>
                         {
-                            column.Spacing(10);
-
-                            // Summary
-                            column.Item().Text($"Total Income: {totalIncome:C}");
-                            column.Item().Text($"Total Expenses: {totalExpense:C}");
-                            column.Item().Text($"Balance: {balance:C}");
-
                             column.Item().Text("Income Details").FontSize(14).Bold();
                             column.Item().Table(table =>
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(200); // Income Name
-                                    columns.ConstantColumn(100); // Amount
+                                    columns.RelativeColumn(); // Income Name
+                                    columns.RelativeColumn(); // Amount
                                     columns.RelativeColumn(); // Date
                                 });
 
@@ -90,15 +83,22 @@ namespace BudgettingWebApps.Services
                                     table.Cell().Text(income.Amount.ToString("C"));
                                     table.Cell().Text(income.TransactionDate.ToShortDateString());
                                 }
-                            });
 
+                                column.Spacing(10);
+                                column.Item().LineHorizontal(1);
+                                column.Item().Text($"Total Income: {totalIncome:C}");
+                                column.Item().LineHorizontal(1);
+                            });
+                            column.Spacing(10);
                             column.Item().Text("Expense Details").FontSize(14).Bold();
+
+                            //Expense Section
                             column.Item().Table(table =>
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(200); // Expense Name
-                                    columns.ConstantColumn(100); // Amount
+                                    columns.RelativeColumn(); // Expense Name
+                                    columns.RelativeColumn(); // Amount
                                     columns.RelativeColumn(); // Date
                                 });
 
@@ -118,6 +118,16 @@ namespace BudgettingWebApps.Services
                                     table.Cell().Text(expense.BudgetMonth.ToShortDateString());
                                 }
                             });
+                            // column.Spacing(10);
+                            column.Item().LineHorizontal(1);
+                            column.Item().Text($"Total Expenses: {totalExpense:C}");
+                            column.Item().LineHorizontal(1);
+                            column.Spacing(10);
+                            
+                            column.Item().LineHorizontal(1);
+                            column.Item().Text($"Balance: {balance:C}");
+                            column.Item().LineHorizontal(1);
+                         
                         });
 
                         page.Footer().AlignCenter().Text(x =>
@@ -131,9 +141,5 @@ namespace BudgettingWebApps.Services
                 return reportBytes;
             });
         }
-
-        // public static int TotalIncome = 3000;
-        // public static int TotalExpense = 2800;
-        // public static int Balance = 200;
     }
 }
