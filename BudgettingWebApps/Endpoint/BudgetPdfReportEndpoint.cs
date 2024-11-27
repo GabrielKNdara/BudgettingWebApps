@@ -23,8 +23,9 @@ public class BudgetPdfReportEndpoint : EndpointWithoutRequest
     {
         try
         {
-            var byteArray = await QuestPdfService.GenerateBudgetReportBytesAsync();
-            await SendBytesAsync(byteArray, "IncomeReport.pdf", "application/pdf");
+            var report = new QuestPdfService(_repository);
+            var byteArray = report.GenerateBudgetReportBytesAsync(2,7);
+          await SendBytesAsync(await byteArray, "IncomeReport.pdf", "application/pdf");
         }
         catch (Exception e)
         {

@@ -9,8 +9,23 @@ namespace BudgettingWebApps.Services
 {
     public class QuestPdfService
     {
-        public static async Task<byte[]> GenerateBudgetReportBytesAsync()
+        private readonly IincomeRepository _repository;
+
+        public QuestPdfService(IincomeRepository repository)
         {
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        }
+
+        public async Task<byte[]> GenerateBudgetReportBytesAsync(int userId, int month)
+        {
+        
+           var allIncome = await _repository.GetIncome(userId);
+           if (allIncome == null || !allIncome.Any())
+           {
+               throw new InvalidOperationException("No Income data found for the given user");
+           }
+           
+           var filteredIncome = allIncome.Where(x => x.TransactionDate.Month == month).ToList();
             return await Task.Run(() =>
             {
            byte[] reportBytes;
@@ -56,7 +71,7 @@ namespace BudgettingWebApps.Services
                             // Data Rows
                             foreach (var income in filteredIncome)
                             {
-                                table.Cell().Text(income.Name);
+                                table.Cell().Text(income.IncomeName);
                                 table.Cell().Text(income.Amount.ToString("C"));
                                 table.Cell().Text(income.TransactionDate.ToShortDateString());
                             }
@@ -102,17 +117,23 @@ namespace BudgettingWebApps.Services
             });
 
           
-            
-            
-            
-         
-        }
         
-        public static List<Income> filteredIncome = new List<Income>()
-        {
-            new Income() { Id = 1, Name = "Salary", Amount = 2500 ,TransactionDate = DateTime.Today},
-            new Income() { Id = 2, Name = "Side Hustle", Amount = 500,TransactionDate = DateTime.Today }
-        };
+     
+        }
+           // private static List<IncomeDto> _income = new List<IncomeDto>(); 
+           //      private static List<IncomeDto> filteredIncome = new List<IncomeDto>();
+                    
+             
+                
+                // private static List<ExpenseDto> _expense = new List<ExpenseDto>();
+                // private static List<ExpenseDto> filteredExpenses = new List<ExpenseDto>();
+        
+             //   private static IExpenseRepository expenseRepository { get; set; } = default!;
+        // public static List<Income> filteredIncome = new List<Income>()
+        // {
+        //     new Income() { Id = 1, Name = "Salary", Amount = 2500 ,TransactionDate = DateTime.Today},
+        //     new Income() { Id = 2, Name = "Side Hustle", Amount = 500,TransactionDate = DateTime.Today }
+        // };
         public static List<Expense> filteredExpenses = new List<Expense>()
         {
             new Expense() { Id = 1, Name = "Rent", Amount = 1500,BudgetMonth = DateTime.Today},
@@ -126,15 +147,17 @@ namespace BudgettingWebApps.Services
         public static int TotalExpense = 2800;
         public static int Balance = 200;
     }
+
+
 }
 
-public class Income
-{
-    public int Id { get; set; }
-    public string Name { get; set; }=string.Empty;
-    public decimal Amount { get; set; }
-    public DateTime TransactionDate { get; set; }
-}
+// public class Income
+// {
+//     public int Id { get; set; }
+//     public string Name { get; set; }=string.Empty;
+//     public decimal Amount { get; set; }
+//     public DateTime TransactionDate { get; set; }
+// }
 public class Expense
 {
     public int Id { get; set; }
