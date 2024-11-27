@@ -8,10 +8,11 @@ namespace BudgettingWebApps.Endpoint;
 public class BudgetPdfReportEndpoint : EndpointWithoutRequest
 {
     private readonly IincomeRepository _repository;
-
-    public BudgetPdfReportEndpoint(IincomeRepository repository)
+    private readonly IExpenseRepository _expenseRepository;
+    public BudgetPdfReportEndpoint(IincomeRepository repository, IExpenseRepository expenseRepository)
     {
         _repository = repository;
+        _expenseRepository = expenseRepository;
     }
 
     public override void Configure()
@@ -23,7 +24,7 @@ public class BudgetPdfReportEndpoint : EndpointWithoutRequest
     {
         try
         {
-            var report = new QuestPdfService(_repository);
+            var report = new QuestPdfService(_repository, _expenseRepository);
             var byteArray = report.GenerateBudgetReportBytesAsync(2,7);
           await SendBytesAsync(await byteArray, "IncomeReport.pdf", "application/pdf");
         }
