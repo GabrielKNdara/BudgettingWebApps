@@ -7,6 +7,10 @@
 @attribute [Authorize(Roles = "admin")]
 
 <h3>Users List</h3>
+<div class="mb-3">
+    <input type="text" @bind="SearchQuery" class="form-control" placeholder="Search by Name, Email, or Role..."/>
+    <button class="btn btn-primary mt-2" @onclick="SearchUsers">Search</button>
+</div>
 <button class="btn btn-primary" @onclick="@(async () => await ExportToExcel())">Export To Excel Report</button>
 
 <table class="table">
@@ -43,6 +47,8 @@
 
 
 @code {
+    private string SearchQuery { get; set; } = string.Empty;
+    private List<UserDto> FilteredUsers = new List<UserDto>(); // For displaying filtered results
 
     [Inject]
     IJSRuntime jSRuntime { get; set; } = default!;
@@ -83,6 +89,24 @@
     private async Task LoadUsers()
     {
         _user = await userRepository.GetAlluser();
+    }
+
+    private async Task SearchUsers()
+    {
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+          await LoadUsers();
+        }
+        else
+        {
+    // Case-insensitive search on multiple fields
+            FilteredUsers = _user.Where(user =>
+                (!string.IsNullOrEmpty(user.UserName) && user.UserName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(user.Email) && user.Email.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(user.Role) && user.Role.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            _user = FilteredUsers;         
+        }
     }
 
 }
