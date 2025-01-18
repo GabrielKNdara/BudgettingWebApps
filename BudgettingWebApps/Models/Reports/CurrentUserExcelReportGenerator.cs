@@ -22,16 +22,23 @@ namespace BudgettingWebApps.Models.Reports
             return new AttachmentDto() { ByteArray = content, ContentType = contentType, FileName = "UserList.xlsx" };
 
         }
-
+        
         private void AddDetailedSheet(List<UserDto> reportData)
         {
             _worksheet = _workbook.Worksheets.Add();
-            var row = 1;
+            _worksheet.Range(1,1,1 ,3).Merge().SetValue("List of users").Style.Font.SetBold().Border
+                .SetBottomBorder(XLBorderStyleValues.Thin);
+            var row = 3;
             _worksheet.Cell(row, 1).Value = "Username";
+            _worksheet.ColumnWidth = 15;
             _worksheet.Cell(row, 2).Value = "Email";
+            _worksheet.ColumnWidth = 25;
             _worksheet.Cell(row, 3).Value = "First Name";
+            _worksheet.ColumnWidth = 15;
             _worksheet.Cell(row, 4).Value = "Surname ";
+            _worksheet.ColumnWidth = 15;
             _worksheet.Cell(row, 5).Value = "Role";
+            _worksheet.ColumnWidth = 15;
                         
             _worksheet.Range(row, 1, row, 5).Style.Font.SetBold().Border.SetTopBorder(XLBorderStyleValues.Thin);
             row++;
