@@ -3,6 +3,7 @@ using BudgettingWebApps.Models;
 using BudgettingWebApps.Models.DbModel;
 using BudgettingWebApps.Models.Mapper;
 using Dapper;
+using Serilog;
 
 namespace BudgettingWebApps.Reposiotories
 {
@@ -12,6 +13,7 @@ namespace BudgettingWebApps.Reposiotories
         Task<DbUserDto> GetUser(string userName);
         Task<int> UpdateUserPassword(ForgotPasswordDto user);
         Task<List<UserDto>> GetAlluser();
+        Task UpdateUserStatus(int userId, bool isActive);
     }
     public class UserRepository : IUserRepository
     {
@@ -65,6 +67,14 @@ namespace BudgettingWebApps.Reposiotories
             var sql = "select * from users";
             var result = await connection.QueryAsync<UserDto>(sql);
             return result.ToList();
+        }
+
+        public async Task UpdateUserStatus(int id, bool active)
+        {
+            using var connection = _connectionFactory.GetDbConnection();
+            var sql = "UPDATE public.users SET  active = @active WHERE id= @id";
+            var isactive= await connection.ExecuteAsync(sql, new { id, active });
+            Log.Information("Rows affected: {RowsAffected}", isactive);
         }
     }
 }

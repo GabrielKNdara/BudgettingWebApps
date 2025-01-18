@@ -1,6 +1,5 @@
 ﻿@page "/users"
 @using BudgettingWebApps.Models
-@using BudgettingWebApps.Models.Reports
 @using BudgettingWebApps.Reposiotories
 @using Microsoft.AspNetCore.Authorization
 @using Serilog
@@ -8,34 +7,43 @@
 @attribute [Authorize(Roles = "admin")]
 
 <h3>Users List</h3>
-<button class="btn btn-primary" @onclick="@(async()=>await ExportToExcel())">Export To Excel Report</button>
+<button class="btn btn-primary" @onclick="@(async () => await ExportToExcel())">Export To Excel Report</button>
 
 <table class="table">
     <thead>
-        <tr>
-            <th>User Name</th>
-            <th>Email</th>
-            <th>First Name</th>
-            <th>Surname</th>
-            <th>Role</th>
-        </tr>
+    <tr>
+        <th>User Name</th>
+        <th>Email</th>
+        <th>First Name</th>
+        <th>Surname</th>
+        <th>Role</th>
+        <th>User State</th>
+    </tr>
     </thead>
     <tbody>
-        @foreach (var user in _user)
-        {
-            <tr>
-                <td>@user.UserName</td>
-                <td>@user.Email</td>
-                <td>@user.FirstName</td>
-                <td>@user.Surname</td>
-                <td>@user.Role</td>
-            </tr>
-        }
+    @foreach (var user in _user)
+    {
+        <tr>
+            <td>@user.UserName</td>
+            <td>@user.Email</td>
+            <td>@user.FirstName</td>
+            <td>@user.Surname</td>
+            <td>@user.Role</td>
+            <td>@(user.active ? "Active" : "Deactivated")</td>
+            <td>
+                <button class="btn btn-warning"
+                        @onclick="() => ChangeUserStatus(user.Id, !user.active)">
+                    @(user.active ? "Deactivate" : "Activate")
+                </button>
+            </td>
+        </tr>
+    }
     </tbody>
 </table>
 
 
 @code {
+
     [Inject]
     IJSRuntime jSRuntime { get; set; } = default!;
 
@@ -47,14 +55,34 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _user = await userRepository.GetAlluser();
+        await LoadUsers();
         await base.OnInitializedAsync();
     }
+
     private async Task ExportToExcel()
     {
         await jSRuntime.InvokeVoidAsync("open", "/users/excel/report/");
         Log.Information("The download button have been clicked");
         Console.WriteLine("You have clicked the download button");
+    }
+
+    private async Task ChangeUserStatus(int userId, bool newStatus)
+    {
+        try
+        {
+            await userRepository.UpdateUserStatus(userId, newStatus);
+            await LoadUsers();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Error updating user status: {ErrorMessage}", ex.Message);
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task LoadUsers()
+    {
+        _user = await userRepository.GetAlluser();
     }
 
 }
