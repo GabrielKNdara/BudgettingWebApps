@@ -12,7 +12,8 @@ namespace BudgettingWebApps.Models
         public string FirstName { get; set; } = string.Empty;
         public string Surname { get; set; } = string.Empty;
         public string Password { get; set; }=string.Empty;
-        public string Role { get; set; } = string.Empty;    
+        public string Role { get; set; } = string.Empty;
+        public bool active { get; set; }
     }
     public class UserValidator : AbstractValidator<UserDto>
     {

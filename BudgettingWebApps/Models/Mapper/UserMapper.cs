@@ -15,9 +15,7 @@ namespace BudgettingWebApps.Models.Mapper
                 email = user.Email,
                 firstname = user.FirstName,
                 lastname = user.Surname,
-                
-                
-              //  createdate = DateTime.Now,
+                active = user.active
             };      
         }
     }

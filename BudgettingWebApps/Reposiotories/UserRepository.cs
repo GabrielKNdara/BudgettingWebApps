@@ -24,8 +24,7 @@ namespace BudgettingWebApps.Reposiotories
        public async Task<DbUserDto> GetUser(string userName)
         {
             var connection = _connectionFactory.GetDbConnection();
-           // var sql = @"select id as userid, concat(firstname,' ',surname) as fullname, passwordhash from public.users where username = @user";
-            var sql = @"select id, role, passwordhash from public.users where username = @user";
+            var sql = @"select id,active ,role, passwordhash from public.users where username = @user";
             var result = await connection.QueryFirstOrDefaultAsync<DbUserDto>(sql, new { user = userName });
             return result;
         }
